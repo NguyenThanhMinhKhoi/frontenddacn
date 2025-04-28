@@ -1,10 +1,11 @@
 // app/login.tsx
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
-import { useRouter } from 'expo-router'; // <- thêm dòng này
+import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // ✅ thêm dòng này
 
 const LoginScreen = () => {
-  const router = useRouter(); // ✅ Đúng: đặt bên trong component
+  const router = useRouter();
   const [user, setUser] = useState<string>('');
   const [pass, setPass] = useState<string>('');
 
@@ -13,7 +14,7 @@ const LoginScreen = () => {
       Alert.alert('Lỗi', 'Vui lòng điền đầy đủ thông tin!');
       return;
     }
-
+  
     try {
       const response = await fetch('http://192.168.2.148:3000/api/login', {
         method: 'POST',
@@ -22,12 +23,15 @@ const LoginScreen = () => {
         },
         body: JSON.stringify({ user, pass }),
       });
-
+  
       const result = await response.json();
-      console.log('Phản hồi server:', result); // debug server response
-
+      console.log('Phản hồi server:', result);
+  
       if (result.success) {
-        // 🟢 Chuyển sang trang explore nếu đăng nhập thành công
+        // Lưu dữ liệu vào AsyncStorage
+        await AsyncStorage.setItem('userInfo', JSON.stringify(result.data));
+  
+        // Sau đó chuyển trang
         router.replace('/explore');
       } else {
         Alert.alert('Đăng nhập thất bại!', result.message || 'Sai tên đăng nhập hoặc mật khẩu');
